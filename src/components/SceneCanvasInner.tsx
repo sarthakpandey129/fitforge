@@ -10,7 +10,7 @@ export default function SceneCanvasInner() {
     <div className="canvas-container">
       <Canvas
         dpr={[1, 2]}
-        camera={{ position: [0, 0.35, 6.5], fov: 40, near: 0.1, far: 100 }}
+        camera={{ position: [0, 0.25, 5.8], fov: 38, near: 0.1, far: 100 }}
         gl={{
           antialias: true,
           alpha: true,

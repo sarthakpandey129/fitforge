@@ -1,22 +1,13 @@
 "use client";
-
 import SectionOverlay from "./SectionOverlay";
-import CTAButton from "../ui/CTAButton";
 
 export default function SectionFinal() {
   return (
-    <SectionOverlay progressRange={[0.82, 1.0]} id="start">
-      <div className="max-w-3xl mx-auto px-6 text-center">
-        <h2 className="text-3xl md:text-5xl lg:text-7xl font-light tracking-tight leading-[0.95] mb-6">
-          One body.
-          <br />
-          One system.
-          <br />
-          <span className="text-fg-muted">Built around you.</span>
+    <SectionOverlay progressRange={[0.85, 1.0]} position="bottom" align="center">
+      <div className="max-w-3xl mx-auto px-6 text-center w-full pb-20">
+        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-black/90 mb-4">
+          ONE SYSTEM. BUILT AROUND YOU.
         </h2>
-        <div className="mt-10">
-          <CTAButton href="/start">Build Your System</CTAButton>
-        </div>
       </div>
     </SectionOverlay>
   );
