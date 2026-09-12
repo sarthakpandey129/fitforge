@@ -1,0 +1,225 @@
+// Prisma Schema for FITFORGE
+// Database: SQLite (local dev) — swappable to PostgreSQL for production
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Auth.js Models ──────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // For credentials auth (hashed)
+  
+  // Profile Traits
+  age                Int?
+  height             Float?
+  activityLevel      String?
+  trainingExperience String?
+  preferredFrequency String?
+  onboarded          Boolean @default(false)
+  
+  // Macro Targets
+  calorieTarget      Int @default(2500)
+  proteinTarget      Int @default(160)
+  carbsTarget        Int @default(250)
+  fatTarget          Int @default(80)
+
+  accounts Account[]
+  sessions Session[]
+  bodyMetrics BodyMetric[]
+  goal        Goal?
+  workouts        Workout[]
+  workoutSessions WorkoutSession[]
+  nutritionLogs   NutritionLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── Application Models ──────────────────────────────
+
+model BodyMetric {
+  id        String   @id @default(cuid())
+  userId    String
+  weight    Float    // in kg or lbs (app logic will handle units)
+  bodyFat   Float?   // percentage
+  notes     String?
+  date      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+}
+
+model Goal {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  type          String    // "BULK", "CUT", "MAINTAIN", "RECOMP"
+  targetWeight  Float?
+  currentValue  Float?
+  deadline      DateTime?
+  completed     Boolean   @default(false)
+  notes         String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Workout {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  
+  exercises WorkoutExercise[]
+  sessions  WorkoutSession[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Exercise {
+  id           String   @id @default(cuid())
+  name         String
+  muscleGroup  String
+  equipment    String
+  difficulty   String
+  instructions String?
+  category     String?
+
+  workoutExercises WorkoutExercise[]
+  sessionSets      SessionSet[]
+
+  createdAt DateTime @default(now())
+}
+
+model WorkoutExercise {
+  id         String @id @default(cuid())
+  workoutId  String
+  exerciseId String
+  order      Int
+  sets       Int
+  reps       Int?
+  weight     Float?
+  duration   Int?     // in seconds
+  distance   Float?   // in km/miles
+
+  workout  Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+}
+
+model WorkoutSession {
+  id          String    @id @default(cuid())
+  workoutId   String
+  userId      String
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  duration    Int?      // in seconds
+
+  workout Workout      @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sets    SessionSet[]
+}
+
+model SessionSet {
+  id         String  @id @default(cuid())
+  sessionId  String
+  exerciseId String
+  setNumber  Int
+  weight     Float?
+  reps       Int?
+  duration   Int?
+  distance   Float?
+  completed  Boolean @default(false)
+
+  session  WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exercise Exercise       @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+}
+
+model Food {
+  id             String  @id @default(cuid())
+  name           String
+  caloriesPer100 Float
+  proteinPer100  Float
+  carbsPer100    Float
+  fatPer100      Float
+  category       String?
+  isIndian       Boolean @default(false)
+
+  nutritionLogs NutritionLog[]
+
+  createdAt DateTime @default(now())
+}
+
+model NutritionLog {
+  id            String   @id @default(cuid())
+  userId        String
+  date          DateTime @default(now())
+  mealType      String   // "BREAKFAST", "LUNCH", "DINNER", "SNACK"
+  foodId        String
+  quantityGrams Float
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  food Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
