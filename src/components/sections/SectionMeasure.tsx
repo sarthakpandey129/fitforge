@@ -1,35 +1,28 @@
 "use client";
 
 import SectionOverlay from "./SectionOverlay";
-import DataLabel from "../ui/DataLabel";
-
-const LEFT_LABELS = ["Age", "Height", "Weight"];
-const RIGHT_LABELS = ["Activity", "Goal", "Training"];
+import FeaturePill from "@/components/ui/FeaturePill";
 
 export default function SectionMeasure() {
   return (
-    <SectionOverlay progressRange={[0.14, 0.36]} position="bottom">
-      <div className="w-full max-w-5xl mx-auto px-6">
-        <div className="text-center mb-8">
-          <p className="text-[10px] md:text-xs font-medium tracking-[0.3em] uppercase text-fg-muted mb-3">
-            Measure
+    <SectionOverlay progressRange={[0.18, 0.35]} position="center" align="left">
+      <div className="px-8 md:px-16 lg:px-24 w-full">
+        <div className="max-w-2xl">
+          <p className="text-[10px] font-medium tracking-[0.3em] uppercase text-black/30 mb-4">
+            01 — MEASURE
           </p>
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[0.92]">
-            Understand
-            <br />
-            the variables.
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-black leading-[0.9] mb-6">
+            UNDERSTAND<br />
+            <span className="gradient-text">YOUR BODY.</span>
           </h2>
-        </div>
-
-        {/* Data labels in a single responsive row */}
-        <div className="flex items-center justify-center gap-4 md:gap-8 flex-wrap">
-          {[...LEFT_LABELS, ...RIGHT_LABELS].map((label, i) => (
-            <DataLabel
-              key={label}
-              label={label}
-              align={i < 3 ? "right" : "left"}
-            />
-          ))}
+          <p className="text-base md:text-lg font-medium text-black/40 max-w-md mb-10">
+            Track 40+ biomarkers. See what's changing, understand why, and know exactly where you stand.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <FeaturePill label="Body Composition" />
+            <FeaturePill label="Biomarkers" />
+            <FeaturePill label="AI Analysis" />
+          </div>
         </div>
       </div>
     </SectionOverlay>

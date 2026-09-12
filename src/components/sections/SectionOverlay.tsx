@@ -3,86 +3,107 @@
 import { useEffect, useRef } from "react";
 
 interface SectionOverlayProps {
-  /** Scroll progress range [start, end] where this section is visible */
   progressRange: [number, number];
-  /** Text placement — "center" or "bottom" */
-  position?: "center" | "bottom";
+  position?: "top" | "center" | "bottom";
+  align?: "left" | "center" | "right";
   children: React.ReactNode;
   className?: string;
   id?: string;
 }
 
-const POSITION_CLASSES = {
-  center: "items-center justify-center",
-  bottom: "items-end justify-center pb-16 md:pb-24 lg:pb-28",
-} as const;
+const ALIGN_CLASSES = {
+  left: "items-start",
+  center: "items-center",
+  right: "items-end",
+};
 
-/**
- * A pinned overlay that fades in/out based on scroll progress.
- * Includes a gradient backdrop when position="bottom" for text readability.
- */
+const POSITION_CLASSES = {
+  top: "justify-start pt-32",
+  center: "justify-center",
+  bottom: "justify-end pb-32",
+};
+
 export default function SectionOverlay({
   progressRange,
-  position = "bottom",
+  position = "center",
+  align = "center",
   children,
   className = "",
   id,
 }: SectionOverlayProps) {
-  const ref = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const [start, end] = progressRange;
-    const mid = (start + end) / 2;
-    const fadeInEnd = start + (mid - start) * 0.35;
-    const fadeOutStart = end - (end - mid) * 0.35;
-
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const docHeight =
-        document.documentElement.scrollHeight - window.innerHeight;
-      const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+      if (!containerRef.current) return;
 
+      const scrollY = window.scrollY;
+      const maxScroll = document.body.scrollHeight - window.innerHeight;
+      const progress = maxScroll > 0 ? Math.max(0, Math.min(1, scrollY / maxScroll)) : 0;
+      
+      const [start, end] = progressRange;
+      const range = end - start;
+      
       let opacity = 0;
-      if (progress >= start && progress <= fadeInEnd) {
-        opacity = (progress - start) / (fadeInEnd - start);
-      } else if (progress > fadeInEnd && progress < fadeOutStart) {
-        opacity = 1;
-      } else if (progress >= fadeOutStart && progress <= end) {
-        opacity = 1 - (progress - fadeOutStart) / (end - fadeOutStart);
+      let scale = 0.96;
+      let translateY = 20;
+      let blur = 6;
+      let visibility = "hidden";
+      
+      if (progress >= start && progress <= end) {
+        visibility = "visible";
+        
+        const fadeZone = range * 0.2; // 20% of range for fade in/out
+        if (progress < start + fadeZone) {
+          const t = (progress - start) / fadeZone;
+          // Cubic ease-in-out
+          opacity = t * t * (3 - 2 * t);
+          scale = 0.96 + (0.04 * t);
+          translateY = 20 * (1 - t);
+          blur = 6 * (1 - t);
+        } else if (progress > end - fadeZone) {
+          const t = (end - progress) / fadeZone;
+          opacity = t * t * (3 - 2 * t);
+          scale = 0.96 + (0.04 * t);
+          translateY = -20 * (1 - t);
+          blur = 6 * (1 - t);
+        } else {
+          opacity = 1;
+          scale = 1;
+          translateY = 0;
+          blur = 0;
+        }
       }
 
-      let translateY = 0;
-      if (progress < fadeInEnd && progress >= start) {
-        translateY = (1 - opacity) * 25;
-      } else if (progress >= fadeOutStart && progress <= end) {
-        translateY = (1 - opacity) * -15;
-      }
-
-      el.style.opacity = `${Math.max(0, Math.min(1, opacity))}`;
-      el.style.transform = `translateY(${translateY}px)`;
-      el.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
+      containerRef.current.style.visibility = visibility as any;
+      containerRef.current.style.opacity = opacity.toString();
+      containerRef.current.style.transform = `scale(${scale}) translateY(${translateY}px)`;
+      containerRef.current.style.filter = `blur(${blur}px)`;
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, [progressRange]);
 
   return (
     <div
-      ref={ref}
       id={id}
-      className={`section-overlay fixed inset-0 z-10 flex ${POSITION_CLASSES[position]} ${className}`}
-      style={{ opacity: 0, pointerEvents: "none" }}
+      className={`fixed inset-0 pointer-events-none flex flex-col z-10 ${POSITION_CLASSES[position]} ${className}`}
     >
-      {/* Gradient backdrop for bottom-positioned text */}
-      {position === "bottom" && (
-        <div className="absolute bottom-0 left-0 right-0 h-[45vh] bg-gradient-to-t from-bg via-bg/50 to-transparent pointer-events-none" />
-      )}
-      <div className="relative z-10">{children}</div>
+      <div 
+        ref={containerRef}
+        className={`w-full flex flex-col pointer-events-auto will-change-[opacity,transform,filter] ${ALIGN_CLASSES[align]}`}
+        style={{
+          visibility: "hidden",
+          opacity: 0,
+          transform: "scale(0.96) translateY(20px)",
+          filter: "blur(6px)"
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

@@ -1,22 +1,26 @@
 "use client";
 
 import SectionOverlay from "./SectionOverlay";
+import FeaturePill from "@/components/ui/FeaturePill";
 
 export default function SectionAdapt() {
   return (
-    <SectionOverlay progressRange={[0.64, 0.86]}>
-      <div className="max-w-3xl mx-auto px-6 text-center">
-        <p className="text-[10px] md:text-xs font-medium tracking-[0.3em] uppercase text-fg-muted mb-4">
-          Adapt
+    <SectionOverlay progressRange={[0.78, 0.90]} position="center" align="center">
+      <div className="max-w-3xl mx-auto px-6 text-center flex flex-col items-center">
+        <p className="text-[10px] font-medium tracking-[0.3em] uppercase text-black/30 mb-4">
+          04 — ADAPT
         </p>
-        <h2 className="text-3xl md:text-5xl lg:text-7xl font-light tracking-tight leading-[0.95] mb-6">
-          Nothing stays
-          <br />
-          static.
+        <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-black leading-[0.9] mb-6">
+          <span className="gradient-text">Nothing</span> stays<br />static.
         </h2>
-        <p className="text-base md:text-lg lg:text-xl font-light text-fg-muted leading-relaxed max-w-md mx-auto">
-          Your plan evolves as you do.
+        <p className="text-base md:text-lg font-medium text-black/40 max-w-md mx-auto mb-8">
+          Your plan evolves as you do. Every workout, every meal, every night of sleep feeds back into the system.
         </p>
+        <div className="flex flex-wrap gap-3 justify-center">
+          <FeaturePill label="AI Adaptation" />
+          <FeaturePill label="Auto-Deload" />
+          <FeaturePill label="Smart Recovery" />
+        </div>
       </div>
     </SectionOverlay>
   );
