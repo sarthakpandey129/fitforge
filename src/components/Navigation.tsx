@@ -10,124 +10,126 @@ gsap.registerPlugin(ScrollTrigger);
 const NAV_LINKS = [
   { label: "SYSTEM", href: "#system" },
   { label: "METHOD", href: "#method" },
-  { label: "START", href: "#start" },
+  { label: "PRICING", href: "#pricing" },
 ];
 
 export default function Navigation() {
-  const progressRef = useRef<HTMLDivElement>(null);
-  const navRef = useRef<HTMLElement>(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const lastScrollY = useRef(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const requestRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const bar = progressRef.current;
-    if (!bar) return;
+    const handleScroll = () => {
+      if (requestRef.current) return;
+      
+      requestRef.current = requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+        
+        if (documentHeight > 0) {
+          setScrollProgress(currentScrollY / documentHeight);
+        }
 
-    const onScroll = () => {
-      const scrollTop = window.scrollY;
-      const docHeight =
-        document.documentElement.scrollHeight - window.innerHeight;
-      const progress = docHeight > 0 ? scrollTop / docHeight : 0;
-      bar.style.transform = `scaleX(${Math.min(progress, 1)})`;
+        if (currentScrollY > lastScrollY.current + 10 && currentScrollY > 100) {
+          setIsHidden(true);
+        } else if (currentScrollY < lastScrollY.current - 10) {
+          setIsHidden(false);
+        }
+        lastScrollY.current = currentScrollY;
+        requestRef.current = null;
+      });
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  /* fade nav bg on scroll */
-  useEffect(() => {
-    const nav = navRef.current;
-    if (!nav) return;
-
-    const onScroll = () => {
-      if (window.scrollY > 80) {
-        nav.classList.add("bg-bg/80", "backdrop-blur-md");
-      } else {
-        nav.classList.remove("bg-bg/80", "backdrop-blur-md");
-      }
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <>
-      {/* Scroll progress */}
-      <div className="fixed top-0 left-0 w-full h-[2px] z-[100]">
-        <div
-          ref={progressRef}
-          className="scroll-progress h-full bg-accent"
-          style={{ transform: "scaleX(0)" }}
-        />
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 py-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        isHidden ? "translate-y-[-110%]" : "translate-y-0"
+      }`}
+    >
+      <div className="mx-4 md:mx-8">
+        <nav className="relative flex items-center justify-between px-6 py-4 bg-white/70 backdrop-blur-2xl border-b border-black/5 rounded-2xl overflow-hidden">
+          
+          {/* Progress bar */}
+          <div 
+            className="absolute bottom-0 left-0 h-[2px] w-full origin-left"
+            style={{ 
+              transform: `scaleX(${scrollProgress})`,
+              background: 'linear-gradient(90deg, var(--color-accent), var(--color-accent-warm))',
+              transition: 'transform 0.1s ease-out'
+            }}
+          />
+
+          <div className="flex items-center">
+            <Link 
+              href="/" 
+              className="text-sm font-bold tracking-[0.2em] transition-all hover:tracking-[0.25em] duration-300"
+            >
+              FITFORGE
+            </Link>
+          </div>
+
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center space-x-8">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="text-black/40 hover:text-black text-xs font-semibold tracking-[0.15em] uppercase transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <Link
+              href="/signup"
+              className="bg-black text-white px-5 py-2 rounded-full text-xs font-semibold tracking-[0.15em] uppercase hover:bg-black/80 transition-colors"
+            >
+              START →
+            </Link>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden flex flex-col justify-center items-center w-8 h-8 space-y-1.5"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <span className={`block w-6 h-0.5 bg-black transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+            <span className={`block w-6 h-0.5 bg-black transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : 'opacity-100'}`} />
+            <span className={`block w-6 h-0.5 bg-black transition-transform duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+          </button>
+        </nav>
       </div>
 
-      {/* Nav bar */}
-      <nav
-        ref={navRef}
-        className="fixed top-0 left-0 w-full z-50 transition-colors duration-500"
-      >
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10 h-14 flex items-center justify-between">
-          {/* Logo */}
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="absolute top-[120%] left-4 right-4 bg-white/95 backdrop-blur-2xl rounded-2xl border border-black/5 p-6 md:hidden shadow-lg flex flex-col space-y-6">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-black/60 hover:text-black text-sm font-semibold tracking-[0.15em] uppercase transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
           <Link
-            href="/"
-            className="text-fg text-sm font-medium tracking-[0.25em] uppercase hover:text-accent transition-colors duration-300"
+            href="/signup"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="bg-black text-white px-5 py-3 rounded-full text-xs font-semibold tracking-[0.15em] uppercase hover:bg-black/80 transition-colors text-center mt-4"
           >
-            FITFORGE
+            START →
           </Link>
-
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-8">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="text-fg-muted text-xs font-medium tracking-[0.2em] uppercase hover:text-fg transition-colors duration-300"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
-          {/* Mobile burger */}
-          <button
-            className="md:hidden text-fg p-2"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-          >
-            <div className="w-5 flex flex-col gap-1">
-              <span
-                className={`block h-[1.5px] bg-fg transition-transform duration-300 ${mobileOpen ? "rotate-45 translate-y-[4px]" : ""}`}
-              />
-              <span
-                className={`block h-[1.5px] bg-fg transition-opacity duration-300 ${mobileOpen ? "opacity-0" : ""}`}
-              />
-              <span
-                className={`block h-[1.5px] bg-fg transition-transform duration-300 ${mobileOpen ? "-rotate-45 -translate-y-[4px]" : ""}`}
-              />
-            </div>
-          </button>
         </div>
-
-        {/* Mobile menu */}
-        <div
-          className={`md:hidden overflow-hidden transition-[max-height] duration-500 ease-out ${mobileOpen ? "max-h-60" : "max-h-0"}`}
-        >
-          <div className="px-6 pb-6 pt-2 flex flex-col gap-4 bg-bg/95 backdrop-blur-md">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className="text-fg-muted text-xs font-medium tracking-[0.2em] uppercase hover:text-fg transition-colors duration-300"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </nav>
-    </>
+      )}
+    </header>
   );
 }
