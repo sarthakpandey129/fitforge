@@ -1,15 +1,83 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #050505;
-  --color-bg-elevated: #0a0a0a;
-  --color-fg: #f5f5f7;
-  --color-fg-muted: #86868b;
-  --color-fg-dim: #48484a;
+  --color-bg: #ffffff;
+  --color-bg-elevated: #f5f5f5;
+  --color-fg: #000000;
+  --color-fg-muted: #333333;
+  --color-fg-dim: #666666;
   --color-accent: #2997ff;
   --color-accent-warm: #ff6b35;
-
+  --color-dark: #0a0a0a;
+  --color-dark-elevated: #141414;
+  --color-dark-border: #222222;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(-10px); }
+  50% { transform: translateY(10px); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes counter-glow {
+  0%, 100% { box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 20%, transparent); }
+  50% { box-shadow: 0 0 30px color-mix(in srgb, var(--color-accent) 50%, transparent); }
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(30px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+}
+
+.glass-card-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 1.5rem;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-warm));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glow-accent {
+  box-shadow: 0 0 40px color-mix(in srgb, var(--color-accent) 20%, transparent), 0 0 80px color-mix(in srgb, var(--color-accent) 10%, transparent);
 }
 
 /* ── Base ──────────────────────────────────── */
@@ -63,6 +131,7 @@ html.lenis body {
 /* ── Scroll Progress Bar ───────────────────── */
 
 .scroll-progress {
+  background: linear-gradient(90deg, var(--color-accent), var(--color-accent-warm));
   transform-origin: left;
   will-change: transform;
 }
@@ -71,7 +140,7 @@ html.lenis body {
 
 .section-overlay {
   pointer-events: none;
-  will-change: opacity, transform;
+  will-change: opacity, transform, filter;
 }
 
 .section-overlay .interactive {
